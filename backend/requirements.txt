@@ -1,0 +1,16 @@
+fastapi
+uvicorn[standard]
+python-multipart
+python-dotenv
+pydantic-settings
+sqlmodel
+alembic
+psycopg2-binary
+openai
+google-genai
+gtts
+weasyprint
+jinja2
+Pillow
+numpy
+httpx
