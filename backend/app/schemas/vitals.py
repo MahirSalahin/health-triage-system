@@ -13,8 +13,8 @@ class VitalsInput(BaseModel):
     heart_rate: float | None = Field(
         default=None, ge=0, le=300, description="Heart rate (bpm)"
     )
-    temperature_c: float | None = Field(
-        default=None, ge=25, le=45, description="Body temperature (°C)"
+    temperature_f: float | None = Field(
+        default=None, ge=77, le=113, description="Body temperature (°F)"
     )
     spo2: float | None = Field(
         default=None, ge=0, le=100, description="Oxygen saturation (%)"

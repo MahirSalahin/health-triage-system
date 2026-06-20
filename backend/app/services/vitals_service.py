@@ -68,20 +68,20 @@ ADULT_RANGES: dict[str, dict] = {
             (0, 30, "CRITICAL"),
         ],
     },
-    "temperature_c": {
-        "unit": "°C",
+    "temperature_f": {
+        "unit": "°F",
         "ranges": [
-            (36.1, 37.2, "NORMAL"),
+            (97.0, 99.0, "NORMAL"),
             # High (fever)
-            (37.2, 38.0, "MILD"),
-            (38.0, 39.0, "MODERATE"),
-            (39.0, 40.0, "SEVERE"),
-            (40.0, 45.0, "CRITICAL"),
+            (99.0, 100.4, "MILD"),
+            (100.4, 102.2, "MODERATE"),
+            (102.2, 104.0, "SEVERE"),
+            (104.0, 113.0, "CRITICAL"),
             # Low (hypothermia)
-            (35.5, 36.1, "MILD"),
-            (35.0, 35.5, "MODERATE"),
-            (34.0, 35.0, "SEVERE"),
-            (25.0, 34.0, "CRITICAL"),
+            (95.9, 97.0, "MILD"),
+            (95.0, 95.9, "MODERATE"),
+            (93.2, 95.0, "SEVERE"),
+            (77.0, 93.2, "CRITICAL"),
         ],
     },
     "spo2": {
@@ -151,18 +151,18 @@ PEDIATRIC_RANGES: dict[str, dict] = {
             (0, 40, "CRITICAL"),
         ],
     },
-    "temperature_c": {
-        "unit": "°C",
+    "temperature_f": {
+        "unit": "°F",
         "ranges": [
-            (36.5, 37.5, "NORMAL"),
-            (37.5, 38.0, "MILD"),
-            (38.0, 39.0, "MODERATE"),
+            (97.7, 99.5, "NORMAL"),
+            (99.5, 100.4, "MILD"),
+            (100.4, 102.2, "MODERATE"),
             # High fever in children is more dangerous
-            (39.0, 40.0, "SEVERE"),
-            (40.0, 45.0, "CRITICAL"),
-            (35.5, 36.5, "MILD"),
-            (35.0, 35.5, "MODERATE"),
-            (25.0, 35.0, "CRITICAL"),
+            (102.2, 104.0, "SEVERE"),
+            (104.0, 113.0, "CRITICAL"),
+            (95.9, 97.7, "MILD"),
+            (95.0, 95.9, "MODERATE"),
+            (77.0, 95.0, "CRITICAL"),
         ],
     },
     "spo2": {
@@ -194,7 +194,7 @@ VITAL_LABELS = {
     "systolic_bp": "Systolic Blood Pressure",
     "diastolic_bp": "Diastolic Blood Pressure",
     "heart_rate": "Heart Rate",
-    "temperature_c": "Body Temperature",
+    "temperature_f": "Body Temperature",
     "spo2": "Oxygen Saturation (SpO2)",
     "blood_glucose_mgdl": "Blood Glucose",
 }
