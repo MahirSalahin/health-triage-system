@@ -9,6 +9,7 @@ from app.api.routes.health import router as health_router
 from app.api.routes.vitals import router as vitals_router
 from app.api.routes.documents import router as documents_router
 from app.api.routes.triage import router as triage_router
+from app.api.routes.intake import router as intake_router
 
 
 @asynccontextmanager
@@ -41,11 +42,11 @@ if settings.BACKEND_CORS_ORIGINS:
 
 # --- Routes ---
 app.include_router(health_router, prefix="/api")
+app.include_router(intake_router, prefix="/api")
 app.include_router(vitals_router, prefix="/api")
 app.include_router(documents_router, prefix="/api")
 app.include_router(triage_router, prefix="/api")
 
 # Feature routes will be added here as they're built:
-# app.include_router(intake_router, prefix="/api")
 # app.include_router(reports_router, prefix="/api")
 
