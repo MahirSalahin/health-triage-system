@@ -7,14 +7,21 @@ class TriageSession(SQLModel, table=True):
     """
     Stores all data collected during a single triage encounter.
 
-    JSON fields store serialized Pydantic model data for flexibility —
-    the structured schemas are defined in app/schemas/.
+    Patient demographics are embedded directly — no separate Patient table.
+    Returning patients can be looked up by phone number, name, or date.
     """
 
     __tablename__ = "triage_session"
 
     id: int | None = Field(default=None, primary_key=True)
-    patient_id: int = Field(foreign_key="patient.id")
+
+    # Patient demographics (embedded)
+    patient_name: str = Field(max_length=255)
+    patient_age: int = Field(ge=0, le=150)
+    patient_sex: str = Field(max_length=10)  # "male" | "female" | "other"
+    patient_phone: str | None = Field(
+        default=None, max_length=20, index=True
+    )
 
     # Task 1 — Intake (voice/text)
     symptoms_original: str | None = Field(default=None)

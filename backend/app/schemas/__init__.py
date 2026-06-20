@@ -24,10 +24,7 @@ from app.schemas.report import (
     ReportGenerateRequest,
     ReportResponse,
 )
-from app.schemas.patient import (
-    PatientCreate,
-    PatientRead,
-)
+from app.schemas.patient import PatientInfo
 
 __all__ = [
     "TextIntakeRequest",
@@ -46,6 +43,5 @@ __all__ = [
     "TriageResponse",
     "ReportGenerateRequest",
     "ReportResponse",
-    "PatientCreate",
-    "PatientRead",
+    "PatientInfo",
 ]

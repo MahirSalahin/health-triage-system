@@ -2,7 +2,7 @@ from enum import Enum
 
 from pydantic import BaseModel, Field
 
-from app.schemas.patient import PatientCreate
+from app.schemas.patient import PatientInfo
 from app.schemas.vitals import VitalsInput
 from app.schemas.document import MedicalEntities
 
@@ -39,7 +39,7 @@ class TriageResult(BaseModel):
 class TriageRequest(BaseModel):
     """Combined input for running triage analysis."""
 
-    patient: PatientCreate
+    patient: PatientInfo
     symptoms_english: str
     medical_entities: MedicalEntities | None = None
     vitals: VitalsInput | None = None
@@ -49,6 +49,5 @@ class TriageResponse(BaseModel):
     """Response after running full triage."""
 
     session_id: int
-    patient_id: int
     triage: TriageResult
     vitals_analysis: dict | None = None

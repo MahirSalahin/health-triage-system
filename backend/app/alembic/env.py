@@ -14,7 +14,7 @@ from sqlmodel import SQLModel
 from app.core.config import settings
 
 # Import all models so SQLModel.metadata knows about them
-from app.models import Patient, TriageSession  # noqa: F401
+from app.models import TriageSession  # noqa: F401
 
 # Alembic Config object
 config = context.config

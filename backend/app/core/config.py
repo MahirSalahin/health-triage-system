@@ -16,6 +16,11 @@ def parse_cors(v: Any) -> list[str] | str:
 
 
 class Settings(BaseSettings):
+    class Config:
+        env_file = ".env"
+        env_file_encoding = "utf-8"
+        extra = "allow"
+
     # App
     FRONTEND_URL: str = "http://localhost:8501"
     BACKEND_API_URL: str = "http://localhost:8000"
@@ -31,8 +36,8 @@ class Settings(BaseSettings):
     OPENAI_BASE_URL: str = (
         "https://generativelanguage.googleapis.com/v1beta/openai/"
     )
-    LLM_MODEL: str = "gemini-2.5-flash"
-    VISION_MODEL: str = "gemini-2.5-flash"
+    LLM_MODEL: str = "gemini-3.5-flash"
+    VISION_MODEL: str = "gemini-3.5-flash"
 
     # Uploads
     UPLOAD_DIR: str = "uploads"
