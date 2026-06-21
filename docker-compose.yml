@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    env_file:
+      # Read the root .env file
+      - .env
+    volumes:
+      # Mount directories that might change or need persistence
+      - ./backend/uploads:/app/uploads
+      - ./backend/report_templates:/app/report_templates
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "8501:8501"
+    environment:
+      # Internal Docker network URL (used by the Python code in the container to talk to the backend)
+      - BACKEND_API_URL=http://backend:8000/api
+      # Public URL used in HTML links for the user's browser (e.g. PDF downloads)
+      - PUBLIC_BACKEND_URL=http://localhost:8000/api
+    depends_on:
+      - backend

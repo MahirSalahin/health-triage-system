@@ -8,12 +8,14 @@ logger = logging.getLogger(__name__)
 
 # Use the backend API URL from env, or default to localhost
 BACKEND_URL = os.getenv("BACKEND_API_URL", "http://localhost:8000/api")
+PUBLIC_BACKEND_URL = os.getenv("PUBLIC_BACKEND_URL", "http://localhost:8000/api")
 
 class TriageAPIClient:
     """Client for interacting with the FastAPI backend."""
 
-    def __init__(self, base_url: str = BACKEND_URL):
+    def __init__(self, base_url: str = BACKEND_URL, public_url: str = PUBLIC_BACKEND_URL):
         self.base_url = base_url.rstrip("/")
+        self.public_url = public_url.rstrip("/")
 
     def health_check(self) -> bool:
         try:
@@ -81,10 +83,10 @@ class TriageAPIClient:
 
     def get_pdf_report_url(self, session_id: str) -> str:
         """Get the URL to download the PDF report."""
-        return f"{self.base_url}/reports/{session_id}/pdf"
+        return f"{self.public_url}/reports/{session_id}/pdf"
 
     def get_audio_summary_url(self, session_id: str, language: str = "en") -> str:
         """Get the URL to play the TTS audio summary."""
-        return f"{self.base_url}/reports/{session_id}/audio-summary?language={language}"
+        return f"{self.public_url}/reports/{session_id}/audio-summary?language={language}"
 
 api = TriageAPIClient()
