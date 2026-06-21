@@ -288,7 +288,18 @@ elif st.session_state.step == 3:
         # Action Bar
         col_pdf, col_bn, col_en = st.columns([2, 1, 1])
         with col_pdf:
-            st.markdown(f"<a href='{api.get_pdf_report_url(sid)}' target='_blank' style='text-decoration:none;'><button style='width:100%; padding:10px; background:#2563eb; color:white; border:none; border-radius:8px; cursor:pointer; font-weight:600;'>📄 Download Official PDF</button></a>", unsafe_allow_html=True)
+            try:
+                pdf_bytes = api.download_pdf_report(sid)
+                st.download_button(
+                    label="📄 Download Official PDF",
+                    data=pdf_bytes,
+                    file_name=f"Triage_Report.pdf",
+                    mime="application/pdf",
+                    type="primary",
+                    use_container_width=True
+                )
+            except Exception as e:
+                st.error("Could not load PDF.")
         with col_bn:
             if st.button("🔊 Bengali Audio", use_container_width=True):
                 audio_res = requests.get(api.get_audio_summary_url(sid, "bn"))
