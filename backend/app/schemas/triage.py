@@ -1,3 +1,4 @@
+import uuid
 from enum import Enum
 
 from pydantic import BaseModel, Field
@@ -48,6 +49,6 @@ class TriageRequest(BaseModel):
 class TriageResponse(BaseModel):
     """Response after running full triage."""
 
-    session_id: int
+    session_id: uuid.UUID
     triage: TriageResult
     vitals_analysis: dict | None = None

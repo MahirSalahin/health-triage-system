@@ -1,4 +1,5 @@
 from datetime import datetime
+import uuid
 
 from sqlmodel import SQLModel, Field
 
@@ -13,7 +14,7 @@ class TriageSession(SQLModel, table=True):
 
     __tablename__ = "triage_session"
 
-    id: int | None = Field(default=None, primary_key=True)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
 
     # Patient demographics (embedded)
     patient_name: str = Field(max_length=255)

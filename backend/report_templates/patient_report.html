@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Triage Report</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 11pt;
+            color: #1f2937;
+            line-height: 1.5;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #2563eb;
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 18pt;
+            color: #1e3a5f;
+            margin-bottom: 4px;
+        }
+
+        .header p {
+            font-size: 9pt;
+            color: #6b7280;
+        }
+
+        .section {
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 12pt;
+            font-weight: 700;
+            color: #1e3a5f;
+            border-bottom: 1px solid #d1d5db;
+            padding-bottom: 4px;
+            margin-bottom: 8px;
+        }
+
+        .patient-info {
+            display: flex;
+            gap: 40px;
+            margin-bottom: 16px;
+        }
+
+        .patient-info .field {
+            display: inline-block;
+            margin-right: 40px;
+        }
+
+        .patient-info .label {
+            font-size: 9pt;
+            color: #6b7280;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .patient-info .value {
+            font-size: 11pt;
+            font-weight: 600;
+        }
+
+        .triage-badge {
+            display: inline-block;
+            padding: 8px 24px;
+            border-radius: 8px;
+            font-size: 16pt;
+            font-weight: 800;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin: 8px 0;
+        }
+
+        .reasoning {
+            background-color: #f3f4f6;
+            border-left: 4px solid #2563eb;
+            padding: 10px 14px;
+            margin: 8px 0;
+            font-size: 10pt;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 8px 0;
+            font-size: 10pt;
+        }
+
+        th {
+            background-color: #1e3a5f;
+            color: white;
+            padding: 6px 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 6px 10px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        .severity-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 9pt;
+            font-weight: 600;
+            color: white;
+        }
+
+        .severity-MILD { background-color: #eab308; }
+        .severity-MODERATE { background-color: #f97316; }
+        .severity-SEVERE { background-color: #ef4444; }
+        .severity-CRITICAL { background-color: #7f1d1d; }
+
+        .badge-GREEN { background-color: #22c55e; }
+        .badge-YELLOW { background-color: #eab308; }
+        .badge-RED { background-color: #ef4444; }
+        .badge-BLACK { background-color: #1f2937; }
+
+        .first-aid-list {
+            padding-left: 20px;
+        }
+
+        .first-aid-list li {
+            margin-bottom: 4px;
+            font-size: 10pt;
+        }
+
+        .red-flags {
+            background-color: #fef2f2;
+            border: 1px solid #fca5a5;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin: 8px 0;
+        }
+
+        .red-flags .flag-title {
+            color: #dc2626;
+            font-weight: 700;
+            font-size: 11pt;
+            margin-bottom: 6px;
+        }
+
+        .red-flags ul {
+            padding-left: 20px;
+            font-size: 10pt;
+        }
+
+        .referral-box {
+            background-color: #eff6ff;
+            border: 1px solid #93c5fd;
+            border-radius: 6px;
+            padding: 10px 14px;
+            margin: 8px 0;
+        }
+
+        .referral-box .ref-title {
+            color: #1d4ed8;
+            font-weight: 700;
+            font-size: 11pt;
+        }
+
+        .medications-list, .diagnoses-list {
+            padding-left: 20px;
+            font-size: 10pt;
+        }
+
+        .footer {
+            margin-top: 24px;
+            padding-top: 12px;
+            border-top: 1px solid #d1d5db;
+            font-size: 8pt;
+            color: #9ca3af;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="header">
+        <h1>🏥 Patient Triage Report</h1>
+        <p>AI-Powered Rural Healthcare Triage & Decision Support System</p>
+        <p>Generated: {{ created_at }}</p>
+    </div>
+
+    <!-- Patient Information -->
+    <div class="section">
+        <div class="section-title">Patient Information</div>
+        <div class="patient-info">
+            <span class="field">
+                <span class="label">Name</span><br>
+                <span class="value">{{ patient_name }}</span>
+            </span>
+            <span class="field">
+                <span class="label">Age</span><br>
+                <span class="value">{{ patient_age }} years</span>
+            </span>
+            <span class="field">
+                <span class="label">Sex</span><br>
+                <span class="value">{{ patient_sex | capitalize }}</span>
+            </span>
+        </div>
+    </div>
+
+    <!-- Reported Symptoms -->
+    <div class="section">
+        <div class="section-title">Reported Symptoms</div>
+        <p>{{ symptoms }}</p>
+    </div>
+
+    <!-- Triage Assessment -->
+    <div class="section">
+        <div class="section-title">Triage Assessment</div>
+        <div class="triage-badge badge-{{ triage_score }}">
+            {{ triage_score }}
+        </div>
+        <div class="reasoning">{{ triage_reasoning }}</div>
+    </div>
+
+    <!-- Differential Diagnoses -->
+    {% if diagnoses %}
+    <div class="section">
+        <div class="section-title">Differential Diagnoses</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Condition</th>
+                    <th>Confidence</th>
+                    <th>Key Indicators</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in diagnoses %}
+                <tr>
+                    <td><strong>{{ d.condition }}</strong></td>
+                    <td>{{ d.confidence_percent }}%</td>
+                    <td>{{ d.key_indicators }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Vital Sign Analysis -->
+    {% if vitals_analysis and vitals_analysis.anomalies %}
+    <div class="section">
+        <div class="section-title">Vital Sign Anomalies</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Vital</th>
+                    <th>Value</th>
+                    <th>Severity</th>
+                    <th>Detail</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in vitals_analysis.anomalies %}
+                <tr>
+                    <td>{{ a.vital_name }}</td>
+                    <td>{{ a.value }} {{ a.unit }}</td>
+                    <td>
+                        <span class="severity-badge severity-{{ a.severity }}">
+                            {{ a.severity }}
+                        </span>
+                    </td>
+                    <td>{{ a.message }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+    <!-- Medical History from Documents -->
+    {% if medical_entities %}
+    <div class="section">
+        <div class="section-title">Medical History (from Documents)</div>
+        {% if medical_entities.medications %}
+        <p><strong>Medications:</strong></p>
+        <ul class="medications-list">
+            {% for m in medical_entities.medications %}
+            <li>{{ m.name }}{% if m.dosage %} — {{ m.dosage }}{% endif %}{% if m.frequency %} ({{ m.frequency }}){% endif %}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% if medical_entities.diagnoses %}
+        <p><strong>Diagnoses:</strong></p>
+        <ul class="diagnoses-list">
+            {% for d in medical_entities.diagnoses %}
+            <li>{{ d }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% if medical_entities.lab_tests %}
+        <p><strong>Lab Tests:</strong></p>
+        <table>
+            <thead>
+                <tr><th>Test</th><th>Result</th><th>Reference</th></tr>
+            </thead>
+            <tbody>
+                {% for t in medical_entities.lab_tests %}
+                <tr>
+                    <td>{{ t.name }}</td>
+                    <td>{{ t.result or '-' }} {{ t.unit or '' }}</td>
+                    <td>{{ t.reference_range or '-' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+        {% if medical_entities.allergies %}
+        <p><strong>Allergies:</strong> {{ medical_entities.allergies | join(', ') }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- First Aid Steps -->
+    {% if first_aid_steps %}
+    <div class="section">
+        <div class="section-title">First Aid Steps for CHW</div>
+        <ol class="first-aid-list">
+            {% for step in first_aid_steps %}
+            <li>{{ step }}</li>
+            {% endfor %}
+        </ol>
+    </div>
+    {% endif %}
+
+    <!-- Red Flags -->
+    {% if red_flags %}
+    <div class="red-flags">
+        <div class="flag-title">⚠ Red Flags — Watch For</div>
+        <ul>
+            {% for flag in red_flags %}
+            <li>{{ flag }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <!-- Referral -->
+    {% if referral_needed %}
+    <div class="referral-box">
+        <div class="ref-title">📋 Referral Recommendation</div>
+        <p><strong>Refer to:</strong> {{ referral_type or 'Higher facility' }}</p>
+        <p><strong>Urgency:</strong> {{ referral_urgency | upper }}</p>
+    </div>
+    {% endif %}
+
+    <!-- Footer / Disclaimer -->
+    <div class="footer">
+        <p><strong>DISCLAIMER:</strong> This report is generated by an AI decision support system and is NOT a medical diagnosis.
+        It is intended to assist community health workers with initial triage. All clinical decisions must be confirmed by a qualified physician.</p>
+        <p>Rural Healthcare Triage & Decision Support System — Bangladesh</p>
+    </div>
+
+</body>
+</html>

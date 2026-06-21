@@ -1,5 +1,6 @@
 """CRUD operations for triage sessions."""
 
+import uuid
 import json
 
 from sqlmodel import Session, select
@@ -54,7 +55,7 @@ def create_triage_session(
     return session
 
 
-def get_triage_session(db: Session, session_id: int) -> TriageSession | None:
+def get_triage_session(db: Session, session_id: uuid.UUID) -> TriageSession | None:
     """Retrieve a triage session by ID."""
     return db.get(TriageSession, session_id)
 
