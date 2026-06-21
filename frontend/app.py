@@ -299,15 +299,25 @@ elif st.session_state.step == 3:
                     use_container_width=True
                 )
             except Exception as e:
-                st.error("Could not load PDF.")
+                st.error(f"Could not load PDF: {e}\n\n*(If running locally on Windows without Docker, PDF generation requires GTK3 system libraries to be installed.)*")
+                
         with col_bn:
             if st.button("🔊 Bengali Audio", use_container_width=True):
-                audio_res = requests.get(api.get_audio_summary_url(sid, "bn"))
-                if audio_res.status_code == 200: st.audio(audio_res.content, format="audio/mp3")
+                with st.spinner("Generating audio..."):
+                    try:
+                        audio_bytes = api.download_audio_summary(sid, "bn")
+                        st.audio(audio_bytes, format="audio/mp3")
+                    except Exception as e:
+                        st.error(f"Audio failed: {e}")
+                        
         with col_en:
             if st.button("🔊 English Audio", use_container_width=True):
-                audio_res = requests.get(api.get_audio_summary_url(sid, "en"))
-                if audio_res.status_code == 200: st.audio(audio_res.content, format="audio/mp3")
+                with st.spinner("Generating audio..."):
+                    try:
+                        audio_bytes = api.download_audio_summary(sid, "en")
+                        st.audio(audio_bytes, format="audio/mp3")
+                    except Exception as e:
+                        st.error(f"Audio failed: {e}")
         
         # Score & Reasoning HTML Card
         referral_html = ""

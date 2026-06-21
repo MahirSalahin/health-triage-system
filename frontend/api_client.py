@@ -85,8 +85,14 @@ class TriageAPIClient:
         res.raise_for_status()
         return res.content
 
-    def get_audio_summary_url(self, session_id: str, language: str = "en") -> str:
-        """Get the URL to play the TTS audio summary."""
-        return f"{self.base_url}/reports/{session_id}/audio-summary?language={language}"
+    def download_audio_summary(self, session_id: str, language: str = "en") -> bytes:
+        """Download the TTS audio summary from the backend."""
+        res = requests.get(
+            f"{self.base_url}/reports/{session_id}/audio-summary",
+            params={"language": language},
+            timeout=100
+        )
+        res.raise_for_status()
+        return res.content
 
 api = TriageAPIClient()
