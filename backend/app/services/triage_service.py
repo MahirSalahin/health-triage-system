@@ -173,8 +173,24 @@ def run_triage(
 
     raw_json = response.choices[0].message.content or "{}"
 
+    # Clean up common LLM JSON artifacts (markdown fences, trailing junk)
+    cleaned = raw_json.strip()
+    if cleaned.startswith("```"):
+        lines = cleaned.split("\n")
+        if lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip().startswith("```"):
+            lines = lines[:-1]
+        cleaned = "\n".join(lines).strip()
+        
+    # Extract just the outermost JSON object if there's trailing garbage
+    start_idx = cleaned.find("{")
+    end_idx = cleaned.rfind("}")
+    if start_idx != -1 and end_idx != -1:
+        cleaned = cleaned[start_idx:end_idx+1]
+
     try:
-        parsed = json.loads(raw_json)
+        parsed = json.loads(cleaned)
         result = TriageResult(**parsed)
     except (json.JSONDecodeError, Exception) as e:
         logger.error(f"Failed to parse triage response: {e}. Raw: {raw_json}")
