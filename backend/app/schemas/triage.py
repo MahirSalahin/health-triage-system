@@ -30,7 +30,7 @@ class TriageResult(BaseModel):
     first_aid_steps: list[str] = Field(default_factory=list)
     referral_needed: bool
     referral_type: str | None = None
-    referral_urgency: str = Field(
+    referral_urgency: str | None = Field(
         default="routine",
         description="routine | soon | urgent | immediate",
     )

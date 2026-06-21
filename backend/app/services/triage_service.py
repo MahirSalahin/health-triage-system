@@ -183,11 +183,19 @@ def run_triage(
             lines = lines[:-1]
         cleaned = "\n".join(lines).strip()
         
-    # Extract just the outermost JSON object if there's trailing garbage
+    # Extract the first complete JSON object using a brace-matching stack
     start_idx = cleaned.find("{")
-    end_idx = cleaned.rfind("}")
-    if start_idx != -1 and end_idx != -1:
-        cleaned = cleaned[start_idx:end_idx+1]
+    if start_idx != -1:
+        stack = []
+        for i in range(start_idx, len(cleaned)):
+            if cleaned[i] == '{':
+                stack.append('{')
+            elif cleaned[i] == '}':
+                if stack:
+                    stack.pop()
+                if not stack:
+                    cleaned = cleaned[start_idx:i+1]
+                    break
 
     try:
         parsed = json.loads(cleaned)

@@ -1,0 +1,5 @@
+streamlit
+requests
+pydantic
+python-dotenv
+audio-recorder-streamlit
