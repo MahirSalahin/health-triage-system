@@ -53,6 +53,7 @@ def analyze_triage(
         db=db,
         patient=request.patient,
         symptoms_english=request.symptoms_english,
+        extracted_text=request.extracted_text,
         medical_entities=request.medical_entities,
         vitals=request.vitals,
         vitals_analysis=vitals_analysis,

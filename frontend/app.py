@@ -50,6 +50,26 @@ st.markdown("""
         box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3) !important;
     }
     
+    /* Responsive Grid for Triage Cards */
+    .triage-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 24px;
+        align-items: start;
+    }
+    /* If there's an odd number of cards (e.g. Vitals missing), make the final card span the full width */
+    .triage-grid > div:nth-child(odd):last-child {
+        grid-column: 1 / -1;
+    }
+    @media (max-width: 768px) {
+        .triage-grid {
+            grid-template-columns: 1fr;
+        }
+        .triage-grid > div:nth-child(odd):last-child {
+            grid-column: 1; /* Reset span on mobile */
+        }
+    }
+    
     /* Triage Badges */
     .triage-badge {
         display: inline-block;
@@ -131,13 +151,17 @@ if "vitals" not in st.session_state:
     st.session_state.vitals = {}
 if "medical_entities" not in st.session_state:
     st.session_state.medical_entities = None
+if "extracted_text" not in st.session_state:
+    st.session_state.extracted_text = None
 if "triage_result" not in st.session_state:
     st.session_state.triage_result = None
+if "intake_stage" not in st.session_state:
+    st.session_state.intake_stage = 1
 
 def next_step(): st.session_state.step += 1
 def prev_step(): st.session_state.step -= 1
 def reset_app():
-    for key in ["step", "patient", "symptoms_english", "vitals", "medical_entities", "triage_result"]:
+    for key in ["step", "patient", "symptoms_english", "vitals", "medical_entities", "extracted_text", "triage_result", "intake_stage"]:
         if key in st.session_state: del st.session_state[key]
     st.rerun()
 
@@ -197,66 +221,121 @@ if st.session_state.step == 1:
 # ==========================================
 elif st.session_state.step == 2:
     st.markdown("<h2>Clinical Intake</h2>", unsafe_allow_html=True)
-    
     # --- Symptoms ---
     with st.container(border=True):
         st.markdown("<div class='section-title'>🗣️ Presenting Symptoms</div>", unsafe_allow_html=True)
-    tab_text, tab_voice = st.tabs(["Text Input", "Voice Upload"])
-    with tab_text:
-        raw_text = st.text_area("Describe symptoms:", height=100)
-        lang = st.selectbox("Language", ["auto", "bn", "en"])
-        if st.button("Process Text"):
-            with st.spinner("Processing..."):
-                try:
-                    res = api.text_intake(raw_text, lang)
-                    st.session_state.symptoms_english = res["english_text"]
-                    st.success("Processed!")
-                except Exception as e: st.error(f"Error: {e}")
-                    
-    with tab_voice:
-        uploaded_audio = st.file_uploader("Upload Audio", type=["wav", "mp3", "m4a"])
-        if uploaded_audio:
-            st.audio(uploaded_audio)
-            if st.button("Transcribe Audio"):
-                with st.spinner("Transcribing..."):
-                    try:
-                        res = api.voice_intake(uploaded_audio.read(), mime_type=uploaded_audio.type)
-                        st.session_state.symptoms_english = res["english_text"]
-                        st.success("Transcribed!")
-                    except Exception as e: st.error(f"Error: {e}")
-    
-        if st.session_state.symptoms_english:
-            st.markdown("<br>**Processed English Symptoms (Editable):**", unsafe_allow_html=True)
-            st.session_state.symptoms_english = st.text_area("Edit", value=st.session_state.symptoms_english, height=80, label_visibility="collapsed")
+        
+        tab_text, tab_voice = st.tabs(["Text Input", "Voice Upload"])
+        
+        with tab_text:
+            # Use value instead of key to avoid Streamlit's "modified after instantiation" error
+            current_text = st.text_area("Describe symptoms:", value=st.session_state.symptoms_english, height=120)
+            st.session_state.symptoms_english = current_text
+            col_lang, col_btn = st.columns([1, 1])
+            with col_lang:
+                lang = st.selectbox("Language", ["auto", "en", "bn"], label_visibility="collapsed")
+            with col_btn:
+                if st.button("Process & Continue ➔", type="primary", use_container_width=True):
+                    with st.spinner("Processing..."):
+                        try:
+                            if not current_text.strip():
+                                st.error("Please enter symptoms before continuing.")
+                            else:
+                                res = api.text_intake(current_text, lang)
+                                # Overwrite the session state with the English translation
+                                st.session_state.symptoms_english = res["english_text"]
+                                st.session_state.show_text_success = True
+                                st.session_state.intake_stage = max(st.session_state.intake_stage, 2)
+                                st.rerun()
+                        except Exception as e:
+                            st.error(f"Error: {e}")
 
-    # --- Vitals ---
-    with st.container(border=True):
-        st.markdown("<div class='section-title'>🩺 Vital Signs (Optional)</div>", unsafe_allow_html=True)
-    vcol1, vcol2, vcol3 = st.columns(3)
-    with vcol1:
-        sys_bp = st.number_input("Systolic BP", min_value=0, max_value=300, value=st.session_state.vitals.get("systolic_bp"))
-        dia_bp = st.number_input("Diastolic BP", min_value=0, max_value=200, value=st.session_state.vitals.get("diastolic_bp"))
-    with vcol2:
-        hr = st.number_input("Heart Rate", min_value=0, max_value=300, value=st.session_state.vitals.get("heart_rate"))
-        temp = st.number_input("Temp (°F)", min_value=70.0, max_value=115.0, value=st.session_state.vitals.get("temperature_f"))
-    with vcol3:
-        spo2 = st.number_input("SpO2 (%)", min_value=0, max_value=100, value=st.session_state.vitals.get("spo2"))
-        glucose = st.number_input("Glucose (mg/dL)", min_value=0, max_value=800, value=st.session_state.vitals.get("blood_glucose_mgdl"))
-        if st.button("Save Vitals"):
-            v = {"systolic_bp": sys_bp, "diastolic_bp": dia_bp, "heart_rate": hr, "temperature_f": temp, "spo2": spo2, "blood_glucose_mgdl": glucose}
-            st.session_state.vitals = {k: val for k, val in v.items() if val is not None}
-            st.success("Saved.")
+                # Show success message if translation just finished
+                if st.session_state.get("show_text_success"):
+                    st.success("Text processed successfully!")
+                    st.session_state.show_text_success = False
+            
+        with tab_voice:
+            uploaded_audio = st.file_uploader("Upload Audio (transcribes to symptoms text)", type=["wav", "mp3", "m4a"])
+            if uploaded_audio:
+                st.audio(uploaded_audio)
+                if st.button("Transcribe & Continue ➔", type="primary"):
+                    with st.spinner("Transcribing..."):
+                        try:
+                            res = api.voice_intake(uploaded_audio.read(), mime_type=uploaded_audio.type)
+                            st.session_state.symptoms_english = res["english_text"]
+                            st.session_state.intake_stage = max(st.session_state.intake_stage, 2)
+                            st.rerun()
+                        except Exception as e: 
+                            st.error(f"Error: {e}")
 
-    col_left, col_mid, col_right = st.columns([1, 3, 1])
-    with col_left:
-        if st.button("🡠 Back", use_container_width=True):
-            prev_step()
-            st.rerun()
-    with col_right:
-        if st.button("Run AI Triage ➔", type="primary", use_container_width=True):
-            if not st.session_state.symptoms_english:
-                st.error("Symptoms required.")
-            else:
+
+
+    if st.session_state.intake_stage >= 2:
+        # --- Complementary Document ---
+        with st.container(border=True):
+            st.markdown("<div class='section-title'>📄 Complementary Document (Optional)</div>", unsafe_allow_html=True)
+            uploaded_doc = st.file_uploader("Upload Medical Document, Prescription, or Lab Report", type=["jpg", "jpeg", "png"])
+            if uploaded_doc:
+                st.image(uploaded_doc, caption="Uploaded Document", width=350)
+                
+            if st.session_state.intake_stage == 2:
+                st.markdown("<br>", unsafe_allow_html=True)
+                col_skip, col_extract = st.columns(2)
+                with col_skip:
+                    if st.button("Skip Document Upload", use_container_width=True):
+                        st.session_state.intake_stage = 3
+                        st.rerun()
+                with col_extract:
+                    if uploaded_doc:
+                        if st.button("Extract Data & Continue ➔", type="primary", use_container_width=True):
+                            with st.spinner("Extracting data..."):
+                                try:
+                                    res = api.scan_document(uploaded_doc.read(), mime_type=uploaded_doc.type)
+                                    
+                                    # Save raw text to DB
+                                    if res.get("raw_text"):
+                                        st.session_state.extracted_text = res["raw_text"]
+                                    
+                                    # Save medical entities
+                                    if res.get("entities"):
+                                        st.session_state.medical_entities = res["entities"]
+                                        st.success("Extracted medical entities successfully!")
+                                    else:
+                                        st.success("Document scanned successfully!")
+                                    st.session_state.intake_stage = 3
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"Error: {e}")
+                    else:
+                        st.button("Extract Data & Continue ➔", type="primary", disabled=True, use_container_width=True)
+
+    if st.session_state.intake_stage >= 3:
+        # --- Vitals ---
+        with st.container(border=True):
+            st.markdown("<div class='section-title'>🩺 Vital Signs (Optional)</div>", unsafe_allow_html=True)
+            vcol1, vcol2, vcol3 = st.columns(3)
+            with vcol1:
+                sys_bp = st.number_input("Systolic BP", min_value=0, max_value=300, value=st.session_state.vitals.get("systolic_bp"))
+                dia_bp = st.number_input("Diastolic BP", min_value=0, max_value=200, value=st.session_state.vitals.get("diastolic_bp"))
+            with vcol2:
+                hr = st.number_input("Heart Rate", min_value=0, max_value=300, value=st.session_state.vitals.get("heart_rate"))
+                temp = st.number_input("Temp (°F)", min_value=70.0, max_value=115.0, value=st.session_state.vitals.get("temperature_f"))
+            with vcol3:
+                spo2 = st.number_input("SpO2 (%)", min_value=0, max_value=100, value=st.session_state.vitals.get("spo2"))
+                glucose = st.number_input("Glucose (mg/dL)", min_value=0, max_value=800, value=st.session_state.vitals.get("blood_glucose_mgdl"))
+
+        st.markdown("<br>", unsafe_allow_html=True)
+        col_left, col_mid, col_right = st.columns([1, 3, 1])
+        with col_left:
+            if st.button("🡠 Back", use_container_width=True):
+                prev_step()
+                st.rerun()
+        with col_right:
+            if st.button("Confirm & Run AI Triage ➔", type="primary", use_container_width=True):
+                # Auto-save vitals on confirm! No need to remember to click save anymore.
+                v = {"systolic_bp": sys_bp, "diastolic_bp": dia_bp, "heart_rate": hr, "temperature_f": temp, "spo2": spo2, "blood_glucose_mgdl": glucose}
+                st.session_state.vitals = {k: val for k, val in v.items() if val is not None and val > 0}
                 next_step()
                 st.rerun()
 
@@ -272,6 +351,7 @@ elif st.session_state.step == 3:
                 req_payload = {
                     "patient": st.session_state.patient,
                     "symptoms_english": st.session_state.symptoms_english,
+                    "extracted_text": st.session_state.get("extracted_text"),
                     "vitals": st.session_state.vitals if st.session_state.vitals else None,
                     "medical_entities": st.session_state.medical_entities
                 }
@@ -340,31 +420,31 @@ elif st.session_state.step == 3:
         </div>
         """, unsafe_allow_html=True)
         
-        # Details Cards (Using CSS Grid for perfect alignment)
-        grid_html = "<div style='display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 24px; align-items: start;'>"
+        # Details Sections (Linear with Expanders)
         
         # Diagnoses
         if t.get("differential_diagnoses"):
-            diag_items = "".join([f"<li><div class='item-title'>{d['condition']} <span class='confidence'>{d['confidence_percent']}%</span></div><div class='item-desc'>{d['key_indicators']}</div></li>" for d in t["differential_diagnoses"]])
-            grid_html += f"<div class='custom-card' style='margin-bottom: 0;'><div class='section-title'>🩺 Differential Diagnoses</div><ul class='data-list'>{diag_items}</ul></div>"
+            with st.expander("🩺 Differential Diagnoses", expanded=True):
+                diag_items = "".join([f"<li><div class='item-title'>{d['condition']} <span class='confidence'>{d['confidence_percent']}%</span></div><div class='item-desc'>{d['key_indicators']}</div></li>" for d in t["differential_diagnoses"]])
+                st.markdown(f"<ul class='data-list'>{diag_items}</ul>", unsafe_allow_html=True)
             
         # First Aid
         if t.get("first_aid_steps"):
-            fa_items = "".join([f"<li>{step}</li>" for step in t["first_aid_steps"]])
-            grid_html += f"<div class='custom-card' style='margin-bottom: 0;'><div class='section-title'>🩹 First Aid / Management</div><ul class='data-list' style='list-style-type: decimal; padding-left: 20px;'>{fa_items}</ul></div>"
+            with st.expander("🩹 First Aid / Management", expanded=True):
+                fa_items = "".join([f"<li>{step}</li>" for step in t["first_aid_steps"]])
+                st.markdown(f"<ul class='data-list' style='list-style-type: decimal; padding-left: 20px;'>{fa_items}</ul>", unsafe_allow_html=True)
             
         # Vitals Anomalies
         if res.get("vitals_analysis") and res["vitals_analysis"].get("anomalies"):
-            vit_items = "".join([f"<li><div class='item-title' style='color:#ef4444;'>{a['vital_name'].replace('_', ' ').title()}: {a['value']} {a['unit']}</div><div class='item-desc'>{a['message']}</div></li>" for a in res["vitals_analysis"]["anomalies"]])
-            grid_html += f"<div class='custom-card' style='margin-bottom: 0;'><div class='section-title'>📈 Vitals Anomalies</div><ul class='data-list'>{vit_items}</ul></div>"
+            with st.expander("📈 Vitals Anomalies", expanded=True):
+                vit_items = "".join([f"<li><div class='item-title' style='color:#ef4444;'>{a['vital_name'].replace('_', ' ').title()}: {a['value']} {a['unit']}</div><div class='item-desc'>{a['message']}</div></li>" for a in res["vitals_analysis"]["anomalies"]])
+                st.markdown(f"<ul class='data-list'>{vit_items}</ul>", unsafe_allow_html=True)
             
         # Red Flags
         if t.get("red_flags"):
-            rf_items = "".join([f"<li style='color: #be123c; font-weight: 500;'>⚠️ {flag}</li>" for flag in t["red_flags"]])
-            grid_html += f"<div class='custom-card' style='background-color: #fff1f2; border-color: #fecdd3; margin-bottom: 0;'><div class='section-title' style='color: #be123c; border-bottom-color: #fecdd3;'>🚨 Red Flags to Monitor</div><ul class='data-list'>{rf_items}</ul></div>"
-            
-        grid_html += "</div>"
-        st.markdown(grid_html, unsafe_allow_html=True)
+            with st.expander("🚨 Red Flags to Monitor", expanded=True):
+                rf_items = "".join([f"<li style='color: #be123c; font-weight: 500;'>⚠️ {flag}</li>" for flag in t["red_flags"]])
+                st.markdown(f"<div style='background-color: #fff1f2; padding: 15px; border-radius: 8px; border: 1px solid #fecdd3;'><ul class='data-list'>{rf_items}</ul></div>", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
     col_back, col_reset = st.columns(2)

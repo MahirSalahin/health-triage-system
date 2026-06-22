@@ -42,6 +42,7 @@ class TriageRequest(BaseModel):
 
     patient: PatientInfo
     symptoms_english: str
+    extracted_text: str | None = None
     medical_entities: MedicalEntities | None = None
     vitals: VitalsInput | None = None
 
