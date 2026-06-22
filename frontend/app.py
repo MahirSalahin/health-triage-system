@@ -248,7 +248,7 @@ elif st.session_state.step == 2:
                                 st.session_state.intake_stage = max(st.session_state.intake_stage, 2)
                                 st.rerun()
                         except Exception as e:
-                            st.error(f"Error: {e}")
+                            st.error("An error occurred while connecting to the server. Please try again.")
 
                 # Show success message if translation just finished
                 if st.session_state.get("show_text_success"):
@@ -267,7 +267,7 @@ elif st.session_state.step == 2:
                             st.session_state.intake_stage = max(st.session_state.intake_stage, 2)
                             st.rerun()
                         except Exception as e: 
-                            st.error(f"Error: {e}")
+                            st.error("An error occurred while connecting to the server. Please try again.")
 
 
 
@@ -306,7 +306,7 @@ elif st.session_state.step == 2:
                                     st.session_state.intake_stage = 3
                                     st.rerun()
                                 except Exception as e:
-                                    st.error(f"Error: {e}")
+                                    st.error("An error occurred while connecting to the server. Please try again.")
                     else:
                         st.button("Extract Data & Continue ➔", type="primary", disabled=True, use_container_width=True)
 
@@ -357,7 +357,7 @@ elif st.session_state.step == 3:
                 }
                 st.session_state.triage_result = api.run_triage(req_payload)
             except Exception as e:
-                st.error(f"Failed to run triage: {e}")
+                st.error("An error occurred while connecting to the server. Please try again.")
                 
     if st.session_state.triage_result:
         res = st.session_state.triage_result

@@ -81,7 +81,7 @@ class TriageAPIClient:
 
     def download_pdf_report(self, session_id: str) -> bytes:
         """Download the PDF report from the backend."""
-        res = requests.get(f"{self.base_url}/reports/{session_id}/pdf", timeout=15)
+        res = requests.get(f"{self.base_url}/reports/{session_id}/pdf", timeout=30)
         res.raise_for_status()
         return res.content
 
