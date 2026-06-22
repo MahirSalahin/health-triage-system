@@ -256,13 +256,22 @@ elif st.session_state.step == 2:
                     st.session_state.show_text_success = False
             
         with tab_voice:
-            uploaded_audio = st.file_uploader("Upload Audio (transcribes to symptoms text)", type=["wav", "mp3", "m4a"])
-            if uploaded_audio:
-                st.audio(uploaded_audio)
+            st.markdown("Record your symptoms directly, or upload an audio file.", help="The audio is securely sent to our AI backend which transcribes and translates it into medical data.")
+            
+            recorded_audio = None
+            if hasattr(st, "audio_input"):
+                recorded_audio = st.audio_input("Record Audio")
+                
+            uploaded_audio = st.file_uploader("Upload Audio (Optional)", type=["wav", "mp3", "m4a"])
+            
+            audio_to_process = recorded_audio or uploaded_audio
+            
+            if audio_to_process:
+                st.audio(audio_to_process)
                 if st.button("Transcribe & Continue ➔", type="primary"):
                     with st.spinner("Transcribing..."):
                         try:
-                            res = api.voice_intake(uploaded_audio.read(), mime_type=uploaded_audio.type)
+                            res = api.voice_intake(audio_to_process.read(), mime_type=audio_to_process.type)
                             st.session_state.symptoms_english = res["english_text"]
                             st.session_state.intake_stage = max(st.session_state.intake_stage, 2)
                             st.rerun()
