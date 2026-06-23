@@ -267,7 +267,10 @@ elif st.session_state.step == 2:
             audio_to_process = recorded_audio or uploaded_audio
             
             if audio_to_process:
-                st.audio(audio_to_process)
+                # The native st.audio_input already renders its own playback widget.
+                # Only render the explicit st.audio widget if the user uploaded a file instead.
+                if audio_to_process == uploaded_audio and not recorded_audio:
+                    st.audio(uploaded_audio)
                 if st.button("Transcribe & Continue ➔", type="primary"):
                     with st.spinner("Transcribing..."):
                         try:
